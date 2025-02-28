@@ -34,7 +34,7 @@ jobs:
           persist-credentials: false
 
       - name: Get Core Dependencies
-        uses: stenciljs/.github/actions/get-core-dependencies
+        uses: stenciljs/.github/actions/get-core-dependencies@main
 
       - name: Test
         run: npm run test

@@ -19,7 +19,7 @@ jobs:
           persist-credentials: false
 
       - name: Get Core Dependencies
-        uses: stenciljs/.github/actions/get-core-dependencies
+        uses: stenciljs/.github/actions/get-core-dependencies@main
 
       - name: Stencil Store Build
         run: npm run build
@@ -30,7 +30,7 @@ jobs:
         shell: bash
 
       - name: Upload Build Artifacts
-        uses: stenciljs/.github/actions/upload-archive
+        uses: stenciljs/.github/actions/upload-archive@main
         with:
           name: stencil-store
           output: stencil-store-build.zip
