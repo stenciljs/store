@@ -7,13 +7,15 @@ export default {
   output: [
     {
       format: 'cjs',
-      file: pkg.main,
+      file: pkg.main
     },
     {
       format: 'esm',
-      file: pkg.module,
+      file: pkg.module
     },
   ],
   external: ['@stencil/core'],
-  plugins: [typescript()],
+  plugins: [typescript({
+    outDir: 'dist'
+  })],
 };
