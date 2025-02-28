@@ -1,7 +1,7 @@
 {
   "name": "@stencil/store",
   "author": "StencilJS Team",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Store is a lightweight shared state library by the StencilJS core team. Implements a simple key/value map that efficiently re-renders components when necessary.",
   "license": "MIT",
   "homepage": "https://stenciljs.com/docs/stencil-store",
