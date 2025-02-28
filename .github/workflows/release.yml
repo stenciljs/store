@@ -67,7 +67,7 @@ jobs:
         with:
           tag: dev
           version: ${{ needs.get_dev_version.outputs.dev-version }}
-          token: ${{ secrets.NPM_TOKEN }}
+          token: ${{ secrets.NPM_PAT_STENCIL_BOT }}
 
   release_create_stencil_cli:
     if: inputs.devRelease == 'no'
@@ -83,4 +83,4 @@ jobs:
         with:
           tag: latest
           version: ${{ inputs.releaseType }}
-          token: ${{ secrets.NPM_TOKEN }}
+          token: ${{ secrets.NPM_PAT_STENCIL_BOT }}
