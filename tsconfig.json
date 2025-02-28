@@ -6,13 +6,13 @@
     "experimentalDecorators": true,
     "lib": [
       "dom",
-      "es2017"
+      "es2022"
     ],
     "outDir": "build",
     "declarationDir": "dist",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "module": "esnext",
-    "target": "es2017",
+    "target": "es2022",
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
     "noUncheckedIndexedAccess": true,

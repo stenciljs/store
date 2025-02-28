@@ -4,10 +4,10 @@ Store is a lightweight shared state library by the [StencilJS](https://stenciljs
 
 **Highlights:**
 
-- Lightweight
-- Zero dependencies
-- Simple API, like a reactive Map
-- Best performance
+- 🪶 Lightweight
+- ⚡ Zero dependencies
+- 📦 Simple API, like a reactive Map
+- 🚀 Best performance
 
 ## Installation
 

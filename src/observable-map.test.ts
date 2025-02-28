@@ -1,3 +1,4 @@
+import { describe, expect, test, vi } from 'vitest';
 import { createObservableMap } from './observable-map';
 
 describe.each([
@@ -32,12 +33,12 @@ describe.each([
 
     method();
 
-    expect(state).not.toHaveProperty('hola');
+    expect('hola' in state).toBe(false);
   });
 
   test('calls on', () => {
     const { [methodName]: method, on } = createObservableMap({ hola: 'hello' });
-    const subscription = jest.fn();
+    const subscription = vi.fn();
 
     on('reset', subscription);
 
@@ -50,7 +51,7 @@ describe.each([
 describe('dispose', () => {
   test('calls on', () => {
     const { dispose, on } = createObservableMap({ hola: 'hello' });
-    const subscription = jest.fn();
+    const subscription = vi.fn();
 
     on('dispose', subscription);
 
@@ -86,7 +87,7 @@ describe.each([
     const { get, on, state } = createObservableMap({
       hola: 'hello',
     });
-    const subscription = jest.fn();
+    const subscription = vi.fn();
     on('get', subscription);
 
     getter(state, get, 'hola');
@@ -115,7 +116,7 @@ describe.each([
       const { set, on, state } = createObservableMap({
         hola: 'hello',
       });
-      const subscription = jest.fn();
+      const subscription = vi.fn();
       on('set', subscription);
 
       setter(state, set, 'hola', 'ola');
@@ -127,7 +128,7 @@ describe.each([
       const { set, onChange, state } = createObservableMap({
         hola: 'hello',
       });
-      const subscription = jest.fn();
+      const subscription = vi.fn();
       onChange('hola', subscription);
 
       setter(state, set, 'hola', 'ola');
@@ -156,7 +157,7 @@ describe.each([
 
 describe('using a function as initial value', () => {
   test('function gets invoked', () => {
-    const fn = jest.fn().mockReturnValue({ a: 1 });
+    const fn = vi.fn().mockReturnValue({ a: 1 });
 
     createObservableMap(fn);
 
@@ -166,7 +167,7 @@ describe('using a function as initial value', () => {
   });
 
   test('returned value is used as object', () => {
-    const fn = jest.fn().mockReturnValue({ a: 1 });
+    const fn = vi.fn().mockReturnValue({ a: 1 });
 
     const { state } = createObservableMap(fn);
 
@@ -220,10 +221,10 @@ test('unregister events', () => {
     hola: 'hola',
     name: 'Sergio',
   });
-  const SET = jest.fn();
-  const GET = jest.fn();
-  const RESET = jest.fn();
-  const CHANGE = jest.fn();
+  const SET = vi.fn();
+  const GET = vi.fn();
+  const RESET = vi.fn();
+  const CHANGE = vi.fn();
 
   const unset = on('set', SET);
   const unget = on('get', GET);
@@ -262,7 +263,7 @@ test('default change detector', () => {
   const store = createObservableMap({
     str: 'hola',
   });
-  const SET = jest.fn();
+  const SET = vi.fn();
   store.on('set', SET);
   store.state.str = 'hola';
   expect(SET).not.toBeCalled();
@@ -271,7 +272,7 @@ test('default change detector', () => {
 });
 
 test('custom change detector, values', () => {
-  const comparer = jest.fn((a, b) => a !== b);
+  const comparer = vi.fn((a, b) => a !== b);
   const store = createObservableMap(
     {
       str: 'hola',
@@ -293,7 +294,7 @@ test('custom change detector, prevent all mutations', () => {
     },
     () => false,
   );
-  const SET = jest.fn();
+  const SET = vi.fn();
   store.on('set', SET);
   store.state.str = 'hola';
   expect(SET).not.toBeCalled();
@@ -305,7 +306,7 @@ test('custom change detector, prevent all mutations', () => {
 describe('use subscriptions', () => {
   test('get is called whenever we get a prop', () => {
     const store = createObservableMap({ str: 'hola' });
-    const get = jest.fn();
+    const get = vi.fn();
     store.use({ get });
 
     store.state.str;
@@ -316,7 +317,7 @@ describe('use subscriptions', () => {
 
   test('get is unregistered', () => {
     const store = createObservableMap({ str: 'hola' });
-    const get = jest.fn();
+    const get = vi.fn();
     const unregister = store.use({ get });
     store.state.str;
     expect(get).toHaveBeenCalledTimes(1);
@@ -330,7 +331,7 @@ describe('use subscriptions', () => {
 
   test('set is called whenever we set a prop', () => {
     const store = createObservableMap({ str: 'hola' });
-    const set = jest.fn();
+    const set = vi.fn();
     store.use({ set });
 
     store.state.str = 'adios';
@@ -341,7 +342,7 @@ describe('use subscriptions', () => {
 
   test('set is unregistered', () => {
     const store = createObservableMap({ str: 'hola' });
-    const set = jest.fn();
+    const set = vi.fn();
     const unregister = store.use({ set });
     store.state.str = 'adios';
     expect(set).toHaveBeenCalledTimes(1);
@@ -355,7 +356,7 @@ describe('use subscriptions', () => {
 
   test('reset is called when we reset the store', () => {
     const store = createObservableMap({ str: 'hola' });
-    const reset = jest.fn();
+    const reset = vi.fn();
     store.use({ reset });
 
     store.reset();
@@ -365,7 +366,7 @@ describe('use subscriptions', () => {
 
   test('reset is unregistered', () => {
     const store = createObservableMap({ str: 'hola' });
-    const reset = jest.fn();
+    const reset = vi.fn();
     const unregister = store.use({ reset });
     store.reset();
     expect(reset).toHaveBeenCalledTimes(1);
@@ -379,7 +380,7 @@ describe('use subscriptions', () => {
 
   test('dispose is called when we dispose the store', () => {
     const store = createObservableMap({ str: 'hola' });
-    const dispose = jest.fn();
+    const dispose = vi.fn();
     store.use({ dispose });
 
     store.dispose();
@@ -389,7 +390,7 @@ describe('use subscriptions', () => {
 
   test('dispose is unregistered', () => {
     const store = createObservableMap({ str: 'hola' });
-    const dispose = jest.fn();
+    const dispose = vi.fn();
     const unregister = store.use({ dispose });
     store.dispose();
     expect(dispose).toHaveBeenCalledTimes(1);
@@ -404,10 +405,10 @@ describe('use subscriptions', () => {
   test('subscription with several properties subscribes to all of them', () => {
     const store = createObservableMap({ str: 'hola' });
     const subscription = {
-      dispose: jest.fn(),
-      get: jest.fn(),
-      reset: jest.fn(),
-      set: jest.fn(),
+      dispose: vi.fn(),
+      get: vi.fn(),
+      reset: vi.fn(),
+      set: vi.fn(),
     };
     store.use(subscription);
 
@@ -427,10 +428,10 @@ describe('use subscriptions', () => {
   test('subscription with several properties can be unregistered', () => {
     const store = createObservableMap({ str: 'hola' });
     const subscription = {
-      dispose: jest.fn(),
-      get: jest.fn(),
-      reset: jest.fn(),
-      set: jest.fn(),
+      dispose: vi.fn(),
+      get: vi.fn(),
+      reset: vi.fn(),
+      set: vi.fn(),
     };
     const unregister = store.use(subscription);
 
@@ -442,7 +443,7 @@ describe('use subscriptions', () => {
     expect(subscription.reset).toHaveBeenCalledTimes(1);
     store.dispose();
     expect(subscription.dispose).toHaveBeenCalledTimes(1);
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     unregister();
 
@@ -459,16 +460,16 @@ describe('use subscriptions', () => {
   test('use can be passed several subscriptions', () => {
     const store = createObservableMap({ str: 'hola' });
     const subscription = {
-      dispose: jest.fn(),
-      get: jest.fn(),
-      reset: jest.fn(),
-      set: jest.fn(),
+      dispose: vi.fn(),
+      get: vi.fn(),
+      reset: vi.fn(),
+      set: vi.fn(),
     };
     const subscription2 = {
-      dispose: jest.fn(),
-      get: jest.fn(),
-      reset: jest.fn(),
-      set: jest.fn(),
+      dispose: vi.fn(),
+      get: vi.fn(),
+      reset: vi.fn(),
+      set: vi.fn(),
     };
     store.use(subscription, subscription2);
 
@@ -492,16 +493,16 @@ describe('use subscriptions', () => {
   test('use can be passed several subscriptions and unregisters them all', () => {
     const store = createObservableMap({ str: 'hola' });
     const subscription = {
-      dispose: jest.fn(),
-      get: jest.fn(),
-      reset: jest.fn(),
-      set: jest.fn(),
+      dispose: vi.fn(),
+      get: vi.fn(),
+      reset: vi.fn(),
+      set: vi.fn(),
     };
     const subscription2 = {
-      dispose: jest.fn(),
-      get: jest.fn(),
-      reset: jest.fn(),
-      set: jest.fn(),
+      dispose: vi.fn(),
+      get: vi.fn(),
+      reset: vi.fn(),
+      set: vi.fn(),
     };
     const unregister = store.use(subscription, subscription2);
     store.state.str;
@@ -516,7 +517,7 @@ describe('use subscriptions', () => {
     store.dispose();
     expect(subscription.dispose).toHaveBeenCalledTimes(1);
     expect(subscription2.dispose).toHaveBeenCalledTimes(1);
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     unregister();
 
@@ -539,7 +540,7 @@ test('forceUpdate', () => {
   const store = createObservableMap({
     str: 'hola',
   });
-  const SET = jest.fn();
+  const SET = vi.fn();
   store.on('set', SET);
   store.forceUpdate('str');
   store.forceUpdate('str');
