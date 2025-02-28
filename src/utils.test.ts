@@ -60,12 +60,12 @@ describe('debounce', () => {
     const debouncedFn = debounce(mockFn, 1000);
 
     debouncedFn(1);
-    
+
     // Advance timer halfway
     vi.advanceTimersByTime(500);
-    
+
     debouncedFn(2);
-    
+
     // Advance to just before the second call would trigger
     vi.advanceTimersByTime(999);
     expect(mockFn).not.toHaveBeenCalled();
@@ -75,4 +75,4 @@ describe('debounce', () => {
     expect(mockFn).toHaveBeenCalledTimes(1);
     expect(mockFn).toHaveBeenCalledWith(2);
   });
-}); 
+});
