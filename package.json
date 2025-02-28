@@ -40,8 +40,9 @@
     "prettier.base": "prettier --cache 'src/**/*.ts'",
     "prettier.dry-run": "npm run prettier.base -- --list-different",
     "release": "np",
-    "test": "vitest",
-    "test.ci": "npm run test && npm run prettier.dry-run",
+    "test": "run-s test.*",
+    "test.prettier": "npm run prettier.dry-run",
+    "test.unit": "vitest",
     "version": "npm run build"
   },
   "files": [
