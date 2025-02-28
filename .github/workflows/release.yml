@@ -1,4 +1,4 @@
-name: 'Dev Release'
+name: Release Stencil Store
 
 on:
   workflow_dispatch:
