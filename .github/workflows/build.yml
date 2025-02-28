@@ -31,7 +31,3 @@ jobs:
 
       - name: Upload Build Artifacts
         uses: stenciljs/.github/actions/upload-archive@main
-        with:
-          name: stencil-store
-          output: stencil-store-build.zip
-          paths: ./dist/

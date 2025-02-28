@@ -43,6 +43,7 @@ jobs:
         run: npm install --save-dev @stencil/core@${{matrix.stencil_version}}
         shell: bash
         if: ${{ matrix.stencil_version != 'DEFAULT' }}
+
       - name: Report Stencil Version
         run: npm ls @stencil/core
         shell: bash
