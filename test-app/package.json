@@ -28,7 +28,7 @@
     "@stencil/core": "^4.0.0",
     "@stencil/store": "latest",
     "@types/node": "^20.11.7",
-    "puppeteer": "^22.11.2"
+    "puppeteer": "^22.15.0"
   },
   "license": "MIT"
 }
