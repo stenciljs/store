@@ -51,26 +51,26 @@ export const createObservableMap = <T extends { [key: string]: any }>(
     typeof Proxy === 'undefined'
       ? {}
       : new Proxy(unwrappedState, {
-          get(_, propName) {
-            return get(propName as any);
-          },
-          ownKeys(_) {
-            return Array.from(states.keys());
-          },
-          getOwnPropertyDescriptor() {
-            return {
-              enumerable: true,
-              configurable: true,
-            };
-          },
-          has(_, propName) {
-            return states.has(propName as any);
-          },
-          set(_, propName, value) {
-            set(propName as any, value);
-            return true;
-          },
-        })
+        get(_, propName) {
+          return get(propName as any);
+        },
+        ownKeys(_) {
+          return Array.from(states.keys());
+        },
+        getOwnPropertyDescriptor() {
+          return {
+            enumerable: true,
+            configurable: true,
+          };
+        },
+        has(_, propName) {
+          return states.has(propName as any);
+        },
+        set(_, propName, value) {
+          set(propName as any, value);
+          return true;
+        },
+      })
   ) as T;
 
   const on: OnHandler<T> = (eventName, callback) => {
@@ -121,6 +121,20 @@ export const createObservableMap = <T extends { [key: string]: any }>(
     handlers.set.forEach((cb) => cb(key, oldValue, oldValue));
   };
 
+  const removeListener = (propName: keyof T, listener: (value: any) => void) => {
+    // Remove the listener from the 'set' event
+    removeFromArray(handlers.set, (key, newValue) => {
+      if (key === propName) {
+        listener(newValue);
+      }
+    });
+
+    // Remove the listener from the 'reset' event
+    removeFromArray(handlers.reset, () => {
+      listener(unwrap(defaultState)[propName]);
+    });
+  };
+
   return {
     state,
     get,
@@ -131,6 +145,7 @@ export const createObservableMap = <T extends { [key: string]: any }>(
     dispose,
     reset,
     forceUpdate,
+    removeListener
   };
 };
 

@@ -113,4 +113,9 @@ export interface ObservableMap<T> {
    * Force a rerender of the specified key, just like the value changed.
    */
   forceUpdate(key: keyof T);
+
+   /**
+   * Remove a listener
+   */
+   removeListener(propName: keyof T, listener: (value: any) => void): void;
 }
