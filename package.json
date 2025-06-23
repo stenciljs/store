@@ -55,7 +55,7 @@
     "@ionic/prettier-config": "^4.0.0",
     "@rollup/plugin-typescript": "^12.1.2",
     "@stencil/core": "^4.27.1",
-    "@types/node": "^22.13.5",
+    "@types/node": "^24.0.3",
     "@vitest/coverage-v8": "^3.0.7",
     "np": "^10.2.0",
     "npm-run-all2": "^8.0.1",
