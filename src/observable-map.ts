@@ -16,7 +16,7 @@ export const createObservableMap = <T extends { [key: string]: any }>(
     set: [],
     reset: [],
   };
-  
+
   // Track onChange listeners to enable removeListener functionality
   const changeListeners = new Map<Function, { setHandler: Function; resetHandler: Function; propName: keyof T }>();
 
@@ -89,16 +89,16 @@ export const createObservableMap = <T extends { [key: string]: any }>(
         cb(newValue);
       }
     };
-    
+
     const resetHandler = () => cb(unwrap(defaultState)[propName]);
-    
+
     // Register the handlers
     const unSet = on('set', setHandler);
     const unReset = on('reset', resetHandler);
-    
+
     // Track the relationship between the user callback and internal handlers
     changeListeners.set(cb, { setHandler, resetHandler, propName });
-    
+
     return () => {
       unSet();
       unReset();
