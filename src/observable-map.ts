@@ -16,6 +16,9 @@ export const createObservableMap = <T extends { [key: string]: any }>(
     set: [],
     reset: [],
   };
+  
+  // Track onChange listeners to enable removeListener functionality
+  const changeListeners = new Map<Function, { setHandler: Function; resetHandler: Function; propName: keyof T }>();
 
   const reset = (): void => {
     // When resetting the state, the default state may be a function - unwrap it to invoke it.
@@ -81,17 +84,25 @@ export const createObservableMap = <T extends { [key: string]: any }>(
   };
 
   const onChange: OnChangeHandler<T> = (propName, cb) => {
-    const unSet = on('set', (key, newValue) => {
+    const setHandler = (key, newValue) => {
       if (key === propName) {
         cb(newValue);
       }
-    });
-    // We need to unwrap the defaultState because it might be a function.
-    // Otherwise we might not be sending the right reset value.
-    const unReset = on('reset', () => cb(unwrap(defaultState)[propName]));
+    };
+    
+    const resetHandler = () => cb(unwrap(defaultState)[propName]);
+    
+    // Register the handlers
+    const unSet = on('set', setHandler);
+    const unReset = on('reset', resetHandler);
+    
+    // Track the relationship between the user callback and internal handlers
+    changeListeners.set(cb, { setHandler, resetHandler, propName });
+    
     return () => {
       unSet();
       unReset();
+      changeListeners.delete(cb);
     };
   };
 
@@ -121,6 +132,16 @@ export const createObservableMap = <T extends { [key: string]: any }>(
     handlers.set.forEach((cb) => cb(key, oldValue, oldValue));
   };
 
+  const removeListener = (propName: keyof T, listener: (value: any) => void) => {
+    const listenerInfo = changeListeners.get(listener);
+    if (listenerInfo && listenerInfo.propName === propName) {
+      // Remove the specific handlers that were created for this listener
+      removeFromArray(handlers.set, listenerInfo.setHandler);
+      removeFromArray(handlers.reset, listenerInfo.resetHandler);
+      changeListeners.delete(listener);
+    }
+  };
+
   return {
     state,
     get,
@@ -131,6 +152,7 @@ export const createObservableMap = <T extends { [key: string]: any }>(
     dispose,
     reset,
     forceUpdate,
+    removeListener,
   };
 };
 

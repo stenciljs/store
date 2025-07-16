@@ -51,11 +51,15 @@ export interface ObservableMap<T> {
    * Note: Proxy objects are not supported by IE11 (not even with a polyfill)
    * so you need to use the store.get and store.set methods of the API if you wish to support IE11.
    *
+   * @returns The proxied object
    */
   state: T;
 
   /**
    * Only useful if you need to support IE11.
+   *
+   * @param propName - The property name to get
+   * @returns The value of the property
    *
    * @example
    * const { state, get } = createStore({ hola: 'hello', adios: 'goodbye' });
@@ -67,6 +71,10 @@ export interface ObservableMap<T> {
   /**
    * Only useful if you need to support IE11.
    *
+   * @param propName - The property name to set
+   * @param value - The value to set
+   * @returns void
+   *
    * @example
    * const { state, get } = createStore({ hola: 'hello', adios: 'goodbye' });
    * state.hola = 'ola'; // If you don't need to support IE11, use this way.
@@ -77,6 +85,10 @@ export interface ObservableMap<T> {
   /**
    * Register a event listener, you can listen to `set`, `get` and `reset` events.
    *
+   * @param eventName - The event name to listen for
+   * @param callback - The callback to call when the event occurs
+   * @returns A function to unsubscribe from the listener
+   *
    * @example
    * store.on('set', (prop, value) => {
    *   console.log(`Prop ${prop} changed to: ${value}`);
@@ -86,6 +98,10 @@ export interface ObservableMap<T> {
 
   /**
    * Easily listen for value changes of the specified key.
+   *
+   * @param propName - The property name to listen for
+   * @param cb - The callback to call when the property changes
+   * @returns A function to unsubscribe from the listener
    */
   onChange: OnChangeHandler<T>;
 
@@ -95,22 +111,41 @@ export interface ObservableMap<T> {
    *
    * This method is intended for plugins to reset
    * all their internal state between tests.
+   *
+   * @returns void
    */
   dispose(): void;
 
   /**
    * Resets the state to its original state.
+   *
+   * @returns void
    */
   reset(): void;
 
   /**
    * Registers a subscription that will be called whenever the user gets, sets, or
    * resets a value.
+   *
+   * @param plugins - The plugins to use
+   * @returns A function to unsubscribe from the plugins
    */
   use(...plugins: Subscription<T>[]): () => void;
 
   /**
    * Force a rerender of the specified key, just like the value changed.
+   *
+   * @param key - The property name to force an update for
+   * @returns void
    */
-  forceUpdate(key: keyof T);
+  forceUpdate(key: keyof T): void;
+
+  /**
+   * Remove a listener
+   *
+   * @param propName - The property name to remove the listener from
+   * @param listener - The listener to remove
+   * @returns void
+   */
+  removeListener(propName: keyof T, listener: (value: any) => void): void;
 }

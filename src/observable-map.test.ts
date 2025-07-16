@@ -536,6 +536,34 @@ describe('use subscriptions', () => {
   });
 });
 
+describe('removeListener', () => {
+  test('removes a listener from the set event', () => {
+    const store = createObservableMap({ str: 'hola' });
+    const listener = vi.fn();
+
+    store.onChange('str', listener);
+    store.state.str = 'adios';
+    expect(listener).toHaveBeenCalledWith('adios');
+
+    store.removeListener('str', listener);
+    store.state.str = 'hello';
+    expect(listener).toHaveBeenCalledTimes(1);
+  });
+
+  test('removes a listener from the reset event', () => {
+    const store = createObservableMap({ str: 'hola' });
+    const listener = vi.fn();
+
+    store.onChange('str', listener);
+    store.reset();
+    expect(listener).toHaveBeenCalledWith('hola');
+
+    store.removeListener('str', listener);
+    store.reset();
+    expect(listener).toHaveBeenCalledTimes(1);
+  });
+});
+
 test('forceUpdate', () => {
   const store = createObservableMap({
     str: 'hola',
