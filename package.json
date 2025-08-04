@@ -61,7 +61,7 @@
     "npm-run-all2": "^8.0.1",
     "prettier": "^3.5.2",
     "rollup": "^4.34.8",
-    "typescript": "~5.8.2",
+    "typescript": "~5.9.2",
     "vitest": "^3.0.7"
   },
   "prettier": "@ionic/prettier-config"
