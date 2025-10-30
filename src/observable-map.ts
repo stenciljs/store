@@ -8,8 +8,9 @@ export const createObservableMap = <T extends { [key: string]: any }>(
   defaultState?: Invocable<T>,
   shouldUpdate: (newV: any, oldValue, prop: keyof T) => boolean = (a, b) => a !== b,
 ): ObservableMap<T> => {
-  const unwrappedState = unwrap(defaultState);
-  let states = new Map<string, any>(Object.entries(unwrappedState ?? {}));
+  const resolveDefaultState = (): T => (unwrap(defaultState) ?? {}) as T;
+  const initialState = resolveDefaultState();
+  let states = new Map<string, any>(Object.entries(initialState));
   const handlers: Handlers<T> = {
     dispose: [],
     get: [],
@@ -23,7 +24,7 @@ export const createObservableMap = <T extends { [key: string]: any }>(
   const reset = (): void => {
     // When resetting the state, the default state may be a function - unwrap it to invoke it.
     // otherwise, the state won't be properly reset
-    states = new Map<string, any>(Object.entries(unwrap(defaultState) ?? {}));
+    states = new Map<string, any>(Object.entries(resolveDefaultState()));
 
     handlers.reset.forEach((cb) => cb());
   };
@@ -52,8 +53,8 @@ export const createObservableMap = <T extends { [key: string]: any }>(
 
   const state = (
     typeof Proxy === 'undefined'
-      ? {}
-      : new Proxy(unwrappedState, {
+      ? ({} as T)
+      : new Proxy(initialState, {
           get(_, propName) {
             return get(propName as any);
           },
@@ -90,7 +91,10 @@ export const createObservableMap = <T extends { [key: string]: any }>(
       }
     };
 
-    const resetHandler = () => cb(unwrap(defaultState)[propName]);
+    const resetHandler = () => {
+      const snapshot = resolveDefaultState();
+      cb(snapshot[propName]);
+    };
 
     // Register the handlers
     const unSet = on('set', setHandler);
