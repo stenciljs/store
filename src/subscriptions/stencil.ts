@@ -19,7 +19,7 @@ const cleanupElements = debounce((map: Map<string, any[]>) => {
   }
 }, 2_000);
 
-const core = StencilCore as {
+const core = StencilCore as unknown as {
   forceUpdate?: (elm: any) => boolean;
   getRenderingRef?: () => any;
 };
