@@ -10,7 +10,7 @@ jobs:
     name: Build Stencil Store
     runs-on: 'ubuntu-latest'
     steps:
-      - name: Checkout Code
+      - name: 📥 Checkout Code
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           # the pull_request_target event will consider the HEAD of `main` to be the SHA to use.
@@ -18,16 +18,16 @@ jobs:
           ref: ${{ github.event_name == 'pull_request_target' && format('refs/pull/{0}/merge', github.event.number) || '' }}
           persist-credentials: false
 
-      - name: Get Core Dependencies
+      - name: 🕸️ Get Core Dependencies
         uses: stenciljs/.github/actions/get-core-dependencies@main
 
-      - name: Stencil Store Build
+      - name: 📦 Stencil Store Build
         run: npm run build
         shell: bash
 
-      - name: Unit Tests
+      - name: 🧪 Unit Tests
         run: npm test
         shell: bash
 
-      - name: Upload Build Artifacts
+      - name: 📤 Upload Build Artifacts
         uses: stenciljs/.github/actions/upload-archive@main

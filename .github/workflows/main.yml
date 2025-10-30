@@ -28,48 +28,49 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
+      - name: 📥 Checkout Code
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           persist-credentials: false
 
-      - name: Get Core Dependencies
+      - name: 🕸️ Get Core Dependencies
         uses: stenciljs/.github/actions/get-core-dependencies@main
 
-      - name: Test
+      - name: 🧪 Test
         run: npm run test
 
-      - name: Install Stencil ${{matrix.stencil_version}}
+      - name: 📦 Install Stencil ${{matrix.stencil_version}}
         run: npm install --save-dev @stencil/core@${{matrix.stencil_version}}
         shell: bash
         if: ${{ matrix.stencil_version != 'DEFAULT' }}
 
-      - name: Report Stencil Version
+      - name: 📊 Report Stencil Version
         run: npm ls @stencil/core
         shell: bash
 
-      - name: Build
+      - name: 🏗️ Build
         run: npm run build
         shell: bash
 
-      - name: Create Symlink
+      - name: 🔗 Create Symlink
         run: npm link
         shell: bash
 
-      - name: Enter test-app Directory
+      - name: 📂 Enter test-app Directory
         run: cd test-app
         shell: bash
 
-      - name: Install test-app Dependencies
+      - name: 📦 Install test-app Dependencies
         run: npm install
         shell: bash
 
-      - name: Link Stencil Store
+      - name: 🔗 Link Stencil Store
         run: npm link @stencil/store
-      - name: Build test-app
+
+      - name: 🏗️ Build test-app
         run: npm run build
         shell: bash
 
-      - name: Test test-app
+      - name: 🧪 Test test-app
         run: npm test
         shell: bash
