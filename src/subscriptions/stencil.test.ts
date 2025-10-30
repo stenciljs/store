@@ -1,18 +1,29 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+const coreMock = vi.hoisted(() => ({
+  exports: {} as {
+    forceUpdate?: ReturnType<typeof vi.fn>;
+    getRenderingRef?: ReturnType<typeof vi.fn>;
+  },
+}));
+
+vi.mock('@stencil/core', () => coreMock.exports);
 
 describe('stencilSubscription', () => {
+  beforeEach(() => {
+    coreMock.exports.forceUpdate = undefined;
+    coreMock.exports.getRenderingRef = undefined;
+  });
+
   afterEach(() => {
     vi.clearAllMocks();
     vi.resetModules();
     vi.useRealTimers();
-    vi.unmock('@stencil/core');
   });
 
   it('returns an empty subscription when stencil internals are unavailable', async () => {
-    vi.doMock('@stencil/core', () => ({
-      forceUpdate: vi.fn(),
-      getRenderingRef: undefined,
-    }));
+    coreMock.exports.forceUpdate = vi.fn();
+    coreMock.exports.getRenderingRef = undefined;
 
     const { stencilSubscription } = await import('./stencil');
 
@@ -34,10 +45,8 @@ describe('stencilSubscription', () => {
       .mockReturnValueOnce(legacyElm)
       .mockReturnValueOnce(undefined);
 
-    vi.doMock('@stencil/core', () => ({
-      forceUpdate,
-      getRenderingRef,
-    }));
+    coreMock.exports.forceUpdate = forceUpdate as any;
+    coreMock.exports.getRenderingRef = getRenderingRef as any;
 
     const { stencilSubscription } = await import('./stencil');
 
