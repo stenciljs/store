@@ -51,8 +51,15 @@ export const createObservableMap = <T extends { [key: string]: any }>(
     }
   };
 
+  const proxyUnavailable = typeof Proxy === 'undefined';
+
+  if (proxyUnavailable) {
+    // eslint-disable-next-line no-console
+    console.warn('[@stencil/store] Proxy is not supported in this environment. Observable maps will not emit reactive updates.');
+  }
+
   const state = (
-    typeof Proxy === 'undefined'
+    proxyUnavailable
       ? ({} as T)
       : new Proxy(initialState, {
           get(_, propName) {
