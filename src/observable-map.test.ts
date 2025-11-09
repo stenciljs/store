@@ -57,8 +57,15 @@ test('falls back to plain objects when Proxy is unavailable', () => {
     const store = createObservableMap({ count: 1 });
 
     store.set('count', 2);
+    store.set('extra', 3);
 
     expect(store.get('count')).toBe(2);
+    expect('extra' in store.state).toBe(true);
+
+    store.reset();
+
+    expect(store.get('count')).toBe(1);
+    expect('extra' in store.state).toBe(false);
   } finally {
     globalThis.Proxy = originalProxy;
   }
