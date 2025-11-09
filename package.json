@@ -37,7 +37,7 @@
     "build.clean": "rimraf dist",
     "build.rollup": "rollup -c rollup.config.js",
     "prettier": "npm run prettier.base -- --write",
-    "prettier.base": "prettier --cache 'src/**/*.ts'",
+    "prettier.base": "prettier --cache \"src/**/*.ts\"",
     "prettier.dry-run": "npm run prettier.base -- --list-different",
     "release": "np",
     "test": "run-s test.*",
