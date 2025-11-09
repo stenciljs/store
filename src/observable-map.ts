@@ -53,7 +53,7 @@ export const createObservableMap = <T extends { [key: string]: any }>(
 
   const state = (
     typeof Proxy === 'undefined'
-      ? ({} as T)
+      ? (() => { throw new Error('ObservableMap: Proxy is not available in this environment. Observable maps require Proxy support.'); })()
       : new Proxy(initialState, {
           get(_, propName) {
             return get(propName as any);
