@@ -23,20 +23,20 @@ on:
 
 jobs:
   build_stencil_store:
-    name: Build
+    name: 🏗️ Build Stencil Store
     uses: ./.github/workflows/build.yml
 
   get_dev_version:
     if: inputs.devRelease == 'yes'
-    name: Get Dev Build Version
+    name: 🔍 Get Dev Build Version
     runs-on: ubuntu-latest
     outputs:
       dev-version: ${{ steps.generate-dev-version.outputs.DEV_VERSION }}
     steps:
-      - name: Checkout Code
+      - name: 📥 Checkout Code
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
-      - name: Generate Dev Version
+      - name: ⚙️ Generate Dev Version
         id: generate-dev-version
         run: |
           PKG_JSON_VERSION=$(cat package.json | jq -r '.version')
@@ -55,13 +55,13 @@ jobs:
 
   release_store_stencil:
     if: inputs.devRelease == 'yes'
-    name: Publish Dev Build
+    name: 📦 Publish Dev Build
     needs: [build_stencil_store, get_dev_version]
     runs-on: ubuntu-latest
     permissions:
       id-token: write
     steps:
-      - name: Checkout Code
+      - name: 📥 Checkout Code
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - uses: stenciljs/.github/actions/publish-npm@main
         with:
@@ -71,14 +71,14 @@ jobs:
 
   release_create_stencil_cli:
     if: inputs.devRelease == 'no'
-    name: Publish Stencil Store
+    name: 📦 Publish Stencil Store
     needs: [build_stencil_store]
     runs-on: ubuntu-latest
     permissions:
       contents: write
       id-token: write
     steps:
-      - name: Checkout Code
+      - name: 📥 Checkout Code
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - uses: stenciljs/.github/actions/publish-npm@main
         with:

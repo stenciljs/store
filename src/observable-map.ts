@@ -8,8 +8,11 @@ export const createObservableMap = <T extends { [key: string]: any }>(
   defaultState?: Invocable<T>,
   shouldUpdate: (newV: any, oldValue, prop: keyof T) => boolean = (a, b) => a !== b,
 ): ObservableMap<T> => {
-  const unwrappedState = unwrap(defaultState);
-  let states = new Map<string, any>(Object.entries(unwrappedState ?? {}));
+  const resolveDefaultState = (): T => (unwrap(defaultState) ?? {}) as T;
+  const initialState = resolveDefaultState();
+  let states = new Map<string, any>(Object.entries(initialState));
+  const proxyAvailable = typeof Proxy !== 'undefined';
+  const plainState: T | null = proxyAvailable ? null : ({} as T);
   const handlers: Handlers<T> = {
     dispose: [],
     get: [],
@@ -23,7 +26,10 @@ export const createObservableMap = <T extends { [key: string]: any }>(
   const reset = (): void => {
     // When resetting the state, the default state may be a function - unwrap it to invoke it.
     // otherwise, the state won't be properly reset
-    states = new Map<string, any>(Object.entries(unwrap(defaultState) ?? {}));
+    states = new Map<string, any>(Object.entries(resolveDefaultState()));
+    if (!proxyAvailable) {
+      syncPlainStateKeys();
+    }
 
     handlers.reset.forEach((cb) => cb());
   };
@@ -45,15 +51,16 @@ export const createObservableMap = <T extends { [key: string]: any }>(
     const oldValue = states.get(propName);
     if (shouldUpdate(value, oldValue, propName)) {
       states.set(propName, value);
+      if (!proxyAvailable) {
+        ensurePlainProperty(propName as string);
+      }
 
       handlers.set.forEach((cb) => cb(propName, value, oldValue));
     }
   };
-
   const state = (
-    typeof Proxy === 'undefined'
-      ? {}
-      : new Proxy(unwrappedState, {
+    proxyAvailable
+      ? new Proxy(initialState, {
           get(_, propName) {
             return get(propName as any);
           },
@@ -74,6 +81,10 @@ export const createObservableMap = <T extends { [key: string]: any }>(
             return true;
           },
         })
+      : (() => {
+          syncPlainStateKeys();
+          return plainState!;
+        })()
   ) as T;
 
   const on: OnHandler<T> = (eventName, callback) => {
@@ -90,7 +101,10 @@ export const createObservableMap = <T extends { [key: string]: any }>(
       }
     };
 
-    const resetHandler = () => cb(unwrap(defaultState)[propName]);
+    const resetHandler = () => {
+      const snapshot = resolveDefaultState();
+      cb(snapshot[propName]);
+    };
 
     // Register the handlers
     const unSet = on('set', setHandler);
@@ -142,6 +156,45 @@ export const createObservableMap = <T extends { [key: string]: any }>(
     }
   };
 
+  function ensurePlainProperty(key: string): void {
+    if (proxyAvailable || !plainState) {
+      return;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(plainState, key)) {
+      return;
+    }
+
+    Object.defineProperty(plainState, key, {
+      configurable: true,
+      enumerable: true,
+      get() {
+        return get(key as keyof T & string);
+      },
+      set(value: any) {
+        set(key as keyof T & string, value);
+      },
+    });
+  }
+
+  function syncPlainStateKeys(): void {
+    if (proxyAvailable || !plainState) {
+      return;
+    }
+
+    const knownKeys = new Set(states.keys());
+
+    for (const key of Object.keys(plainState as object)) {
+      if (!knownKeys.has(key)) {
+        delete (plainState as Record<string, unknown>)[key];
+      }
+    }
+
+    for (const key of knownKeys) {
+      ensurePlainProperty(key);
+    }
+  }
+
   return {
     state,
     get,
@@ -155,7 +208,6 @@ export const createObservableMap = <T extends { [key: string]: any }>(
     removeListener,
   };
 };
-
 const removeFromArray = (array: any[], item: any) => {
   const index = array.indexOf(item);
   if (index >= 0) {

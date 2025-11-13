@@ -48,6 +48,40 @@ describe.each([
   });
 });
 
+test('falls back to plain objects when Proxy is unavailable', () => {
+  const originalProxy = globalThis.Proxy;
+  // @ts-expect-error - simulating environments without Proxy support
+  globalThis.Proxy = undefined;
+
+  try {
+    const store = createObservableMap({ count: 1 });
+
+    store.set('count', 2);
+    store.set('extra', 3);
+
+    expect(store.get('count')).toBe(2);
+    expect('extra' in store.state).toBe(true);
+
+    store.reset();
+
+    expect(store.get('count')).toBe(1);
+    expect('extra' in store.state).toBe(false);
+  } finally {
+    globalThis.Proxy = originalProxy;
+  }
+});
+
+test('reset restores empty state when no default state is provided', () => {
+  const store = createObservableMap<Record<string, number>>();
+
+  store.set('num', 1);
+  expect(store.get('num')).toBe(1);
+
+  store.reset();
+
+  expect(store.get('num')).toBeUndefined();
+});
+
 describe('dispose', () => {
   test('calls on', () => {
     const { dispose, on } = createObservableMap({ hola: 'hello' });
@@ -561,6 +595,18 @@ describe('removeListener', () => {
     store.removeListener('str', listener);
     store.reset();
     expect(listener).toHaveBeenCalledTimes(1);
+  });
+
+  test('ignores unknown listeners', () => {
+    const store = createObservableMap({ str: 'hola' });
+    const listener = vi.fn();
+
+    store.removeListener('str', listener);
+
+    // should not throw and should not start tracking the listener
+    store.set('str', 'hola2');
+
+    expect(listener).not.toHaveBeenCalled();
   });
 });
 
