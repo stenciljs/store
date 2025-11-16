@@ -1,0 +1,105 @@
+name: 'Publish Stencil Store'
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        description: 'Version or semver bump to publish.'
+        required: true
+        type: string
+      tag:
+        description: 'npm dist-tag to publish under.'
+        required: true
+        type: string
+      node-version:
+        description: 'Node.js version used for publishing.'
+        required: false
+        type: string
+        default: '20'
+      registry-url:
+        description: 'npm registry URL.'
+        required: false
+        type: string
+        default: 'https://registry.npmjs.org'
+      scope:
+        description: 'npm scope that should use trusted publisher auth.'
+        required: false
+        type: string
+        default: '@stencil'
+      package-directory:
+        description: 'Directory that contains the package to publish.'
+        required: false
+        type: string
+        default: '.'
+      install-command:
+        description: 'Command used to install dependencies. Leave blank to skip.'
+        required: false
+        type: string
+        default: 'npm ci'
+      install-working-directory:
+        description: 'Working directory for the install command.'
+        required: false
+        type: string
+        default: '.'
+      build-command:
+        description: 'Command used to build the package. Leave blank to skip.'
+        required: false
+        type: string
+        default: 'npm run build'
+      build-working-directory:
+        description: 'Working directory for the build command.'
+        required: false
+        type: string
+        default: '.'
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: 🟢 Configure Node for Publish
+        if: ${{ inputs.scope == '' }}
+        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
+        with:
+          node-version: ${{ inputs.node-version }}
+          registry-url: ${{ inputs.registry-url }}
+
+      - name: 🟢 Configure Node for Publish (Scoped)
+        if: ${{ inputs.scope != '' }}
+        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
+        with:
+          node-version: ${{ inputs.node-version }}
+          registry-url: ${{ inputs.registry-url }}
+          scope: ${{ inputs.scope }}
+
+      - name: 🔄 Ensure Latest npm
+        run: npm install -g npm@latest
+        shell: bash
+
+      - name: 📦 Install Dependencies
+        if: ${{ inputs.install-command != '' }}
+        run: ${{ inputs.install-command }}
+        shell: bash
+        working-directory: ${{ inputs.install-working-directory }}
+
+      - name: 🛠️ Build Package
+        if: ${{ inputs.build-command != '' }}
+        run: ${{ inputs.build-command }}
+        shell: bash
+        working-directory: ${{ inputs.build-working-directory }}
+
+      - name: 🏷️ Set Version
+        run: npm version --no-git-tag-version --allow-same-version ${{ inputs.version }}
+        shell: bash
+        working-directory: ${{ inputs.package-directory }}
+
+      - name: 🚀 Publish to npm
+        run: npm publish --tag ${{ inputs.tag }} --provenance
+        shell: bash
+        working-directory: ${{ inputs.package-directory }}
