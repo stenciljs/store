@@ -1,0 +1,31 @@
+name: 'Stencil Store Production Release'
+
+on:
+  workflow_call:
+    inputs:
+      bump:
+        description: 'Semver bump to apply (patch, minor, major).'
+        required: true
+        type: choice
+        default: patch
+        options:
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  build_stencil_store:
+    name: 🏗️ Build Stencil Store
+    uses: ./.github/workflows/build.yml
+
+  publish_production:
+    name: 🚀 Publish Production Build
+    needs: build_stencil_store
+    uses: ./.github/workflows/publish-npm.yml
+    with:
+      tag: latest
+      version: ${{ inputs.bump }}
