@@ -45,3 +45,4 @@ jobs:
     with:
       tag: latest
       version: ${{ inputs.bump }}
+

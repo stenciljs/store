@@ -27,13 +27,14 @@ permissions:
 
 jobs:
   run-dev:
-    if: ${{ github.event.inputs.channel == 'dev' }}
+    if: ${{ inputs.channel == 'dev' }}
     uses: ./.github/workflows/release-dev.yml
     secrets: inherit
 
   run-production:
-    if: ${{ github.event.inputs.channel == 'production' }}
+    if: ${{ inputs.channel == 'production' }}
     uses: ./.github/workflows/release-production.yml
     secrets: inherit
     with:
-      bump: ${{ github.event.inputs.bump }}
+      bump: ${{ inputs.bump }}
+
