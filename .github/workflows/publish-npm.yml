@@ -103,3 +103,4 @@ jobs:
         run: npm publish --tag ${{ inputs.tag }} --provenance
         shell: bash
         working-directory: ${{ inputs.package-directory }}
+
