@@ -1,4 +1,4 @@
-name: 'Stencil Store Release'
+name: 'Release - Stencil Store'
 
 on:
   workflow_dispatch:
