@@ -1,8 +1,10 @@
 export const appendToMap = <K, V extends Object>(map: Map<K, WeakRef<V>[]>, propName: K, value: V) => {
-  const refs = map.get(propName);
+  let refs = map.get(propName);
   if (!refs) {
-    map.set(propName, []);
-  } else if (!refs.some((ref) => ref.deref() === value)) {
+    refs = [];
+    map.set(propName, refs);
+  }
+  if (!refs.some((ref) => ref.deref() === value)) {
     refs.push(new WeakRef(value));
   }
 };
