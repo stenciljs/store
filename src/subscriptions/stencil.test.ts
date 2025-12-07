@@ -127,10 +127,7 @@ describe('stencilSubscription', () => {
     (global as any).WeakRef = MockWeakRef;
 
     const forceUpdate = vi.fn(() => true);
-    const getRenderingRef = vi
-      .fn()
-      .mockReturnValueOnce(gcedElm)
-      .mockReturnValueOnce(keptElm);
+    const getRenderingRef = vi.fn().mockReturnValueOnce(gcedElm).mockReturnValueOnce(keptElm);
 
     coreMock.exports.forceUpdate = forceUpdate as any;
     coreMock.exports.getRenderingRef = getRenderingRef as any;

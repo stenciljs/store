@@ -6,7 +6,7 @@ describe('appendToMap', () => {
     const testMap = new Map<string, WeakRef<any>[]>();
     const obj = { id: 1 };
     appendToMap(testMap, 'key1', obj);
-    
+
     const refs = testMap.get('key1');
     expect(refs).toHaveLength(1);
     expect(refs![0].deref()).toBe(obj);
@@ -16,10 +16,10 @@ describe('appendToMap', () => {
     const testMap = new Map<string, WeakRef<any>[]>();
     const obj1 = { id: 1 };
     const obj2 = { id: 3 };
-    
+
     appendToMap(testMap, 'key1', obj1);
     appendToMap(testMap, 'key1', obj2);
-    
+
     const refs = testMap.get('key1');
     expect(refs).toHaveLength(2);
     expect(refs![0].deref()).toBe(obj1);
@@ -30,11 +30,11 @@ describe('appendToMap', () => {
     const testMap = new Map<string, WeakRef<any>[]>();
     const obj1 = { id: 1 };
     const obj2 = { id: 2 };
-    
+
     appendToMap(testMap, 'key1', obj1);
     appendToMap(testMap, 'key1', obj2);
     appendToMap(testMap, 'key1', obj1); // Duplicate
-    
+
     const refs = testMap.get('key1');
     expect(refs).toHaveLength(2);
     expect(refs![0].deref()).toBe(obj1);
