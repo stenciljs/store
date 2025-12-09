@@ -1,9 +1,14 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { appendToMap, debounce } from './utils';
 
 describe('appendToMap', () => {
+  let testMap: Map<string, WeakRef<Object>[]>;
+
+  beforeEach(() => {
+    testMap = new Map();
+  });
+
   it('should add value to empty map', () => {
-    const testMap = new Map<string, WeakRef<any>[]>();
     const obj = { id: 1 };
     appendToMap(testMap, 'key1', obj);
 
@@ -13,7 +18,6 @@ describe('appendToMap', () => {
   });
 
   it('should append value to existing array', () => {
-    const testMap = new Map<string, WeakRef<any>[]>();
     const obj1 = { id: 1 };
     const obj2 = { id: 3 };
 
@@ -27,7 +31,6 @@ describe('appendToMap', () => {
   });
 
   it('should not append duplicate value', () => {
-    const testMap = new Map<string, WeakRef<any>[]>();
     const obj1 = { id: 1 };
     const obj2 = { id: 2 };
 
@@ -43,38 +46,52 @@ describe('appendToMap', () => {
 });
 
 describe('debounce', () => {
-  it('should debounce function calls', () => {
+  beforeEach(() => {
     vi.useFakeTimers();
-    const fn = vi.fn();
-    const debouncedFn = debounce(fn, 100);
+  });
 
-    debouncedFn();
-    debouncedFn();
-    debouncedFn();
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
 
-    expect(fn).not.toHaveBeenCalled();
+  it('should debounce function calls', () => {
+    const mockFn = vi.fn();
+    const debouncedFn = debounce(mockFn, 1000);
 
-    vi.advanceTimersByTime(100);
+    // Call the debounced function multiple times
+    debouncedFn(1);
+    debouncedFn(2);
+    debouncedFn(3);
 
-    expect(fn).toHaveBeenCalledTimes(1);
-    vi.useRealTimers();
+    // Function should not have been called yet
+    expect(mockFn).not.toHaveBeenCalled();
+
+    // Fast forward time
+    vi.runAllTimers();
+
+    // Function should have been called once with the last arguments
+    expect(mockFn).toHaveBeenCalledTimes(1);
+    expect(mockFn).toHaveBeenCalledWith(3);
   });
 
   it('should cancel previous timeout on new calls', () => {
-    vi.useFakeTimers();
-    const fn = vi.fn();
-    const debouncedFn = debounce(fn, 100);
+    const mockFn = vi.fn();
+    const debouncedFn = debounce(mockFn, 1000);
 
-    debouncedFn();
-    vi.advanceTimersByTime(50);
-    debouncedFn();
-    vi.advanceTimersByTime(50);
+    debouncedFn(1);
 
-    expect(fn).not.toHaveBeenCalled();
+    // Advance timer halfway
+    vi.advanceTimersByTime(500);
 
-    vi.advanceTimersByTime(50);
+    debouncedFn(2);
 
-    expect(fn).toHaveBeenCalledTimes(1);
-    vi.useRealTimers();
+    // Advance to just before the second call would trigger
+    vi.advanceTimersByTime(999);
+    expect(mockFn).not.toHaveBeenCalled();
+
+    // Advance the remaining time
+    vi.advanceTimersByTime(1);
+    expect(mockFn).toHaveBeenCalledTimes(1);
+    expect(mockFn).toHaveBeenCalledWith(2);
   });
 });
