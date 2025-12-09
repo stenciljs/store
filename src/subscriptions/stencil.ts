@@ -13,9 +13,13 @@ import { appendToMap, debounce } from '../utils';
  */
 const isConnected = (maybeElement: any) => !('isConnected' in maybeElement) || maybeElement.isConnected;
 
-const cleanupElements = debounce((map: Map<string, any[]>) => {
+const cleanupElements = debounce((map: Map<string, WeakRef<any>[]>) => {
   for (let key of map.keys()) {
-    map.set(key, map.get(key).filter(isConnected));
+    const refs = map.get(key).filter((ref) => {
+      const elm = ref.deref();
+      return elm && isConnected(elm);
+    });
+    map.set(key, refs);
   }
 }, 2_000);
 
@@ -36,7 +40,7 @@ export const stencilSubscription = <T>(): Subscription<T> => {
 
   const ensureForceUpdate = forceUpdate;
   const ensureGetRenderingRef = getRenderingRef;
-  const elmsToUpdate = new Map<string, any[]>();
+  const elmsToUpdate = new Map<string, WeakRef<any>[]>();
 
   return {
     dispose: () => elmsToUpdate.clear(),
@@ -47,14 +51,24 @@ export const stencilSubscription = <T>(): Subscription<T> => {
       }
     },
     set: (propName) => {
-      const elements = elmsToUpdate.get(propName as string);
-      if (elements) {
-        elmsToUpdate.set(propName as string, elements.filter(ensureForceUpdate));
+      const refs = elmsToUpdate.get(propName as string);
+      if (refs) {
+        const nextRefs = refs.filter((ref) => {
+          const elm = ref.deref();
+          if (!elm) return false;
+          return ensureForceUpdate(elm);
+        });
+        elmsToUpdate.set(propName as string, nextRefs);
       }
       cleanupElements(elmsToUpdate);
     },
     reset: () => {
-      elmsToUpdate.forEach((elms) => elms.forEach(ensureForceUpdate));
+      elmsToUpdate.forEach((refs) => {
+        refs.forEach((ref) => {
+          const elm = ref.deref();
+          if (elm) ensureForceUpdate(elm);
+        });
+      });
       cleanupElements(elmsToUpdate);
     },
   };

@@ -2,27 +2,46 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { appendToMap, debounce } from './utils';
 
 describe('appendToMap', () => {
-  let testMap: Map<string, number[]>;
+  let testMap: Map<string, WeakRef<Object>[]>;
 
   beforeEach(() => {
     testMap = new Map();
   });
 
   it('should add value to empty map', () => {
-    appendToMap(testMap, 'key1', 1);
-    expect(testMap.get('key1')).toEqual([1]);
+    const obj = { id: 1 };
+    appendToMap(testMap, 'key1', obj);
+
+    const refs = testMap.get('key1');
+    expect(refs).toHaveLength(1);
+    expect(refs![0].deref()).toBe(obj);
   });
 
   it('should append value to existing array', () => {
-    testMap.set('key1', [1, 2]);
-    appendToMap(testMap, 'key1', 3);
-    expect(testMap.get('key1')).toEqual([1, 2, 3]);
+    const obj1 = { id: 1 };
+    const obj2 = { id: 3 };
+
+    appendToMap(testMap, 'key1', obj1);
+    appendToMap(testMap, 'key1', obj2);
+
+    const refs = testMap.get('key1');
+    expect(refs).toHaveLength(2);
+    expect(refs![0].deref()).toBe(obj1);
+    expect(refs![1].deref()).toBe(obj2);
   });
 
   it('should not append duplicate value', () => {
-    testMap.set('key1', [1, 2]);
-    appendToMap(testMap, 'key1', 2);
-    expect(testMap.get('key1')).toEqual([1, 2]);
+    const obj1 = { id: 1 };
+    const obj2 = { id: 2 };
+
+    appendToMap(testMap, 'key1', obj1);
+    appendToMap(testMap, 'key1', obj2);
+    appendToMap(testMap, 'key1', obj1); // Duplicate
+
+    const refs = testMap.get('key1');
+    expect(refs).toHaveLength(2);
+    expect(refs![0].deref()).toBe(obj1);
+    expect(refs![1].deref()).toBe(obj2);
   });
 });
 

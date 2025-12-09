@@ -87,4 +87,69 @@ describe('stencilSubscription', () => {
 
     expect(forceUpdate).not.toHaveBeenCalled();
   });
+
+  it('prevents duplicate subscriptions for the same element', async () => {
+    const elm = { isConnected: true, id: 'unique' };
+    const forceUpdate = vi.fn();
+    const getRenderingRef = vi.fn().mockReturnValue(elm);
+
+    coreMock.exports.forceUpdate = forceUpdate as any;
+    coreMock.exports.getRenderingRef = getRenderingRef as any;
+
+    const { stencilSubscription } = await import('./stencil');
+    const subscription = stencilSubscription();
+
+    subscription.get?.('prop');
+    subscription.get?.('prop');
+
+    expect(getRenderingRef).toHaveBeenCalledTimes(2);
+
+    subscription.set?.('prop');
+
+    expect(forceUpdate).toHaveBeenCalledTimes(1);
+  });
+
+  it('handles garbage collected elements', async () => {
+    const originalWeakRef = global.WeakRef;
+    const gcedElm = { id: 'gced' };
+    const keptElm = { id: 'kept', isConnected: true };
+
+    class MockWeakRef {
+      target: any;
+      constructor(target: any) {
+        this.target = target;
+      }
+      deref() {
+        if (this.target === gcedElm) return undefined;
+        return this.target;
+      }
+    }
+    (global as any).WeakRef = MockWeakRef;
+
+    const forceUpdate = vi.fn(() => true);
+    const getRenderingRef = vi.fn().mockReturnValueOnce(gcedElm).mockReturnValueOnce(keptElm);
+
+    coreMock.exports.forceUpdate = forceUpdate as any;
+    coreMock.exports.getRenderingRef = getRenderingRef as any;
+
+    try {
+      const { stencilSubscription } = await import('./stencil');
+      const subscription = stencilSubscription();
+
+      subscription.get?.('prop');
+      subscription.get?.('prop');
+
+      subscription.set?.('prop');
+
+      expect(forceUpdate).toHaveBeenCalledTimes(1);
+      expect(forceUpdate).toHaveBeenCalledWith(keptElm);
+
+      forceUpdate.mockClear();
+      subscription.reset?.();
+      expect(forceUpdate).toHaveBeenCalledTimes(1);
+      expect(forceUpdate).toHaveBeenCalledWith(keptElm);
+    } finally {
+      global.WeakRef = originalWeakRef;
+    }
+  });
 });

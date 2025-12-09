@@ -1,9 +1,11 @@
-export const appendToMap = <K, V>(map: Map<K, V[]>, propName: K, value: V) => {
-  const items = map.get(propName);
-  if (!items) {
-    map.set(propName, [value]);
-  } else if (!items.includes(value)) {
-    items.push(value);
+export const appendToMap = <K, V extends Object>(map: Map<K, WeakRef<V>[]>, propName: K, value: V) => {
+  let refs = map.get(propName);
+  if (!refs) {
+    refs = [];
+    map.set(propName, refs);
+  }
+  if (!refs.some((ref) => ref.deref() === value)) {
+    refs.push(new WeakRef(value));
   }
 };
 
