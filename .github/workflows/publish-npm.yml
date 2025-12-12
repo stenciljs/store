@@ -53,7 +53,7 @@ on:
         default: '.'
 
 permissions:
-  contents: read
+  contents: write
   id-token: write
 
 jobs:
@@ -62,6 +62,8 @@ jobs:
     steps:
       - name: 📥 Checkout Code
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          fetch-depth: 0
 
       - name: 🟢 Configure Node for Publish
         if: ${{ inputs.scope == '' }}
@@ -95,9 +97,55 @@ jobs:
         working-directory: ${{ inputs.build-working-directory }}
 
       - name: 🏷️ Set Version
-        run: npm version --no-git-tag-version --allow-same-version ${{ inputs.version }}
+        run: npm version --no-git-tag-version ${{ inputs.version }}
         shell: bash
         working-directory: ${{ inputs.package-directory }}
+
+      - name: 🔎 Get Version from package.json
+        id: get-version
+        run: |
+          if [ "${{ inputs.package-directory }}" = "." ]; then
+            VERSION=$(node -p "require('./package.json').version")
+          else
+            VERSION=$(node -p "require('./${{ inputs.package-directory }}/package.json').version")
+          fi
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+        shell: bash
+
+      - name: 📝 Commit Version Changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if [ "${{ inputs.package-directory }}" = "." ]; then
+            git add package.json package-lock.json
+          else
+            git add ${{ inputs.package-directory }}/package.json ${{ inputs.package-directory }}/package-lock.json
+          fi
+          # Only commit if there are changes
+          if ! git diff --staged --quiet; then
+            git commit -m "chore: bump version to ${{ steps.get-version.outputs.VERSION }}"
+          else
+            echo "No changes to commit"
+          fi
+        shell: bash
+
+      - name: 🏷️ Create Git Tag
+        run: |
+          # Only create tag if it doesn't already exist
+          if ! git rev-parse "v${{ steps.get-version.outputs.VERSION }}" >/dev/null 2>&1; then
+            git tag -a "v${{ steps.get-version.outputs.VERSION }}" -m "Release v${{ steps.get-version.outputs.VERSION }}"
+          else
+            echo "Tag v${{ steps.get-version.outputs.VERSION }} already exists"
+          fi
+        shell: bash
+
+      - name: 📤 Push Changes and Tag
+        run: |
+          # Push the commit to the current branch
+          git push origin HEAD
+          # Push the tag
+          git push origin "v${{ steps.get-version.outputs.VERSION }}"
+        shell: bash
 
       - name: 🚀 Publish to npm
         run: npm publish --tag ${{ inputs.tag }} --provenance
