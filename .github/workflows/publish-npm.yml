@@ -104,12 +104,13 @@ jobs:
       - name: 🔎 Get Version from package.json
         id: get-version
         run: |
+          PKG_PATH="${{ inputs.package-directory }}/package.json"
           if [ "${{ inputs.package-directory }}" = "." ]; then
-            VERSION=$(node -p "require('./package.json').version")
-          else
-            VERSION=$(node -p "require('./${{ inputs.package-directory }}/package.json').version")
+            PKG_PATH="package.json"
           fi
+          VERSION=$(node -p "require('./$PKG_PATH').version")
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "Extracted version: $VERSION"
         shell: bash
 
       - name: 📝 Commit Version Changes
@@ -131,12 +132,25 @@ jobs:
 
       - name: 🏷️ Create Git Tag
         run: |
-          # Only create tag if it doesn't already exist
-          if ! git rev-parse "v${{ steps.get-version.outputs.VERSION }}" >/dev/null 2>&1; then
-            git tag -a "v${{ steps.get-version.outputs.VERSION }}" -m "Release v${{ steps.get-version.outputs.VERSION }}"
-          else
-            echo "Tag v${{ steps.get-version.outputs.VERSION }} already exists"
+          TAG_NAME="v${{ steps.get-version.outputs.VERSION }}"
+          echo "Checking for existing tag: $TAG_NAME"
+          
+          # Check if tag exists locally
+          if git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
+            echo "Tag $TAG_NAME already exists locally, skipping creation"
+            exit 0
           fi
+          
+          # Check if tag exists remotely
+          if git ls-remote --tags origin "$TAG_NAME" | grep -q "$TAG_NAME"; then
+            echo "Tag $TAG_NAME already exists on remote, skipping creation"
+            exit 0
+          fi
+          
+          # Create the tag
+          echo "Creating annotated tag $TAG_NAME"
+          git tag -a "$TAG_NAME" -m "Release $TAG_NAME"
+          echo "✓ Tag $TAG_NAME created successfully"
         shell: bash
 
       - name: 📤 Push Changes and Tag
