@@ -97,20 +97,22 @@ jobs:
         working-directory: ${{ inputs.build-working-directory }}
 
       - name: 🏷️ Set Version
-        run: npm version --no-git-tag-version ${{ inputs.version }}
+        run: npm version --no-git-tag-version --allow-same-version ${{ inputs.version }}
         shell: bash
         working-directory: ${{ inputs.package-directory }}
 
       - name: 🔎 Get Version from package.json
         id: get-version
         run: |
-          PKG_PATH="${{ inputs.package-directory }}/package.json"
-          if [ "${{ inputs.package-directory }}" = "." ]; then
-            PKG_PATH="package.json"
+          # Normalize package directory path to prevent path traversal issues
+          PKG_DIR="${{ inputs.package-directory }}"
+          if [ "$PKG_DIR" = "." ] || [ -z "$PKG_DIR" ]; then
+            PKG_DIR="."
           fi
-          VERSION=$(node -p "require('./$PKG_PATH').version")
+          # Use path.resolve to safely construct the absolute path
+          VERSION=$(node -e "const path = require('path'); const pkgPath = path.resolve('$PKG_DIR', 'package.json'); const pkg = require(pkgPath); console.log(pkg.version);")
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
-          echo "Extracted version: $VERSION"
+          echo "Extracted version: $VERSION from $PKG_DIR/package.json"
         shell: bash
 
       - name: 📝 Commit Version Changes
@@ -131,6 +133,8 @@ jobs:
         shell: bash
 
       - name: 🏷️ Create Git Tag
+        # Skip tag creation for dev builds to avoid cluttering the repository
+        if: ${{ inputs.tag != 'dev' }}
         run: |
           TAG_NAME="v${{ steps.get-version.outputs.VERSION }}"
           echo "Checking for existing tag: $TAG_NAME"
@@ -157,8 +161,12 @@ jobs:
         run: |
           # Push the commit to the current branch
           git push origin HEAD
-          # Push the tag
-          git push origin "v${{ steps.get-version.outputs.VERSION }}"
+          # Push the tag (only for non-dev builds)
+          if [ "${{ inputs.tag }}" != "dev" ]; then
+            git push origin "v${{ steps.get-version.outputs.VERSION }}"
+          else
+            echo "Skipping tag push for dev build"
+          fi
         shell: bash
 
       - name: 🚀 Publish to npm
