@@ -120,7 +120,7 @@ jobs:
           if [ "${{ inputs.package-directory }}" = "." ]; then
             git add package.json package-lock.json
           else
-            git add ${{ inputs.package-directory }}/package.json ${{ inputs.package-directory }}/package-lock.json
+            git add ${{ inputs.package-directory }}/package.json ${{ inputs.package-directory }}/package-lock.json 2>/dev/null || true
           fi
           # Only commit if there are changes
           if ! git diff --staged --quiet; then
