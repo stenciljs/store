@@ -11,7 +11,7 @@ jobs:
     runs-on: 'ubuntu-latest'
     steps:
       - name: 📥 Checkout Code
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           # the pull_request_target event will consider the HEAD of `main` to be the SHA to use.
           # attempt to use the SHA associated with a pull request and fallback to HEAD of `main`
