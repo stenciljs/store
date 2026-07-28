@@ -13,14 +13,16 @@ import { appendToMap, debounce } from '../utils';
  */
 const isConnected = (maybeElement: any) => !('isConnected' in maybeElement) || maybeElement.isConnected;
 
-const cleanupElements = debounce((map: Map<string, WeakRef<any>[]>) => {
-  for (let key of map.keys()) {
-    const refs = map.get(key).filter((ref) => {
-      const elm = ref.deref();
-      return elm && isConnected(elm);
-    });
-    map.set(key, refs);
-  }
+const cleanupElements = debounce((map: Map<string, Set<WeakRef<any>>>) => {
+  map.forEach((refs, key) => {
+    const nextRefs = new Set(
+      [...refs].filter((ref) => {
+        const elm = ref.deref();
+        return elm && isConnected(elm);
+      }),
+    );
+    map.set(key, nextRefs);
+  });
 }, 2_000);
 
 const core = StencilCore as unknown as {
@@ -40,24 +42,27 @@ export const stencilSubscription = <T>(): Subscription<T> => {
 
   const ensureForceUpdate = forceUpdate;
   const ensureGetRenderingRef = getRenderingRef;
-  const elmsToUpdate = new Map<string, WeakRef<any>[]>();
+  const refsByElement = new WeakMap<any, WeakRef<any>>();
+  const elmsToUpdate = new Map<string, Set<WeakRef<any>>>();
 
   return {
     dispose: () => elmsToUpdate.clear(),
     get: (propName) => {
       const elm = ensureGetRenderingRef();
       if (elm) {
-        appendToMap(elmsToUpdate, propName as string, elm);
+        appendToMap(elmsToUpdate, refsByElement, propName as string, elm);
       }
     },
     set: (propName) => {
       const refs = elmsToUpdate.get(propName as string);
       if (refs) {
-        const nextRefs = refs.filter((ref) => {
-          const elm = ref.deref();
-          if (!elm) return false;
-          return ensureForceUpdate(elm);
-        });
+        const nextRefs = new Set(
+          [...refs].filter((ref) => {
+            const elm = ref.deref();
+            if (!elm) return false;
+            return ensureForceUpdate(elm);
+          }),
+        );
         elmsToUpdate.set(propName as string, nextRefs);
       }
       cleanupElements(elmsToUpdate);

@@ -1,12 +1,20 @@
-export const appendToMap = <K, V extends Object>(map: Map<K, WeakRef<V>[]>, propName: K, value: V) => {
+export const appendToMap = <K, V extends Object>(
+  map: Map<K, Set<WeakRef<V>>>,
+  refsByValue: WeakMap<V, WeakRef<V>>,
+  propName: K,
+  value: V,
+): void => {
+  let ref = refsByValue.get(value);
+  if (!ref) {
+    ref = new WeakRef(value);
+    refsByValue.set(value, ref);
+  }
   let refs = map.get(propName);
   if (!refs) {
-    refs = [];
+    refs = new Set();
     map.set(propName, refs);
   }
-  if (!refs.some((ref) => ref.deref() === value)) {
-    refs.push(new WeakRef(value));
-  }
+  refs.add(ref);
 };
 
 export const debounce = <T extends (...args: any[]) => any>(fn: T, ms: number): ((...args: Parameters<T>) => void) => {
