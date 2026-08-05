@@ -15,7 +15,7 @@ on:
         description: 'Node.js version used for publishing.'
         required: false
         type: string
-        default: '20'
+        default: '24'
       registry-url:
         description: 'npm registry URL.'
         required: false
