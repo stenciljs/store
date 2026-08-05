@@ -15,12 +15,11 @@ const isConnected = (maybeElement: any) => !('isConnected' in maybeElement) || m
 
 const cleanupElements = debounce((map: Map<string, Set<WeakRef<any>>>) => {
   map.forEach((refs, key) => {
-    const nextRefs = new Set(
-      [...refs].filter((ref) => {
-        const elm = ref.deref();
-        return elm && isConnected(elm);
-      }),
-    );
+    const nextRefs = new Set<WeakRef<any>>();
+    refs.forEach((ref) => {
+      const elm = ref.deref();
+      if (elm && isConnected(elm)) nextRefs.add(ref);
+    });
     map.set(key, nextRefs);
   });
 }, 2_000);
@@ -56,13 +55,11 @@ export const stencilSubscription = <T>(): Subscription<T> => {
     set: (propName) => {
       const refs = elmsToUpdate.get(propName as string);
       if (refs) {
-        const nextRefs = new Set(
-          [...refs].filter((ref) => {
-            const elm = ref.deref();
-            if (!elm) return false;
-            return ensureForceUpdate(elm);
-          }),
-        );
+        const nextRefs = new Set<WeakRef<any>>();
+        refs.forEach((ref) => {
+          const elm = ref.deref();
+          if (elm && ensureForceUpdate(elm)) nextRefs.add(ref);
+        });
         elmsToUpdate.set(propName as string, nextRefs);
       }
       cleanupElements(elmsToUpdate);
