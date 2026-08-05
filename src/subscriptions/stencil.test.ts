@@ -109,6 +109,72 @@ describe('stencilSubscription', () => {
     expect(forceUpdate).toHaveBeenCalledTimes(1);
   });
 
+  it('deduplicates an element independently in each property bucket', async () => {
+    vi.useFakeTimers();
+
+    const elm = { isConnected: true, id: 'shared' };
+    const forceUpdate = vi.fn(() => true);
+    const getRenderingRef = vi.fn().mockReturnValue(elm);
+
+    coreMock.exports.forceUpdate = forceUpdate as any;
+    coreMock.exports.getRenderingRef = getRenderingRef as any;
+
+    const { stencilSubscription } = await import('./stencil');
+    const subscription = stencilSubscription<{ first: number; second: number }>();
+
+    subscription.get?.('first');
+    subscription.get?.('second');
+    subscription.get?.('first');
+
+    subscription.set?.('first', 1, 0);
+
+    expect(forceUpdate).toHaveBeenCalledTimes(1);
+    expect(forceUpdate).toHaveBeenCalledWith(elm);
+
+    forceUpdate.mockClear();
+    subscription.set?.('second', 1, 0);
+
+    expect(forceUpdate).toHaveBeenCalledTimes(1);
+    expect(forceUpdate).toHaveBeenCalledWith(elm);
+
+    vi.runAllTimers();
+  });
+
+  it('allows a connected element to resubscribe after cleanup', async () => {
+    vi.useFakeTimers();
+
+    const elm = { isConnected: false, id: 'reconnected' };
+    const forceUpdate = vi.fn(() => true);
+    const getRenderingRef = vi.fn().mockReturnValue(elm);
+
+    coreMock.exports.forceUpdate = forceUpdate as any;
+    coreMock.exports.getRenderingRef = getRenderingRef as any;
+
+    const { stencilSubscription } = await import('./stencil');
+    const subscription = stencilSubscription<{ prop: number }>();
+
+    subscription.get?.('prop');
+    subscription.set?.('prop', 1, 0);
+
+    expect(forceUpdate).toHaveBeenCalledTimes(1);
+    expect(forceUpdate).toHaveBeenCalledWith(elm);
+
+    forceUpdate.mockClear();
+    vi.runAllTimers();
+
+    subscription.reset?.();
+    expect(forceUpdate).not.toHaveBeenCalled();
+
+    elm.isConnected = true;
+    subscription.get?.('prop');
+    subscription.set?.('prop', 2, 1);
+
+    expect(forceUpdate).toHaveBeenCalledTimes(1);
+    expect(forceUpdate).toHaveBeenCalledWith(elm);
+
+    vi.runAllTimers();
+  });
+
   it('handles garbage collected elements', async () => {
     const originalWeakRef = global.WeakRef;
     const gcedElm = { id: 'gced' };
