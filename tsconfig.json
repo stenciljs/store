@@ -3,6 +3,7 @@
     "allowSyntheticDefaultImports": true,
     "allowUnreachableCode": false,
     "declaration": true,
+    "strict": true,
     "experimentalDecorators": true,
     "lib": [
       "dom",
@@ -10,6 +11,7 @@
     ],
     "outDir": "build",
     "declarationDir": "dist",
+    "rootDir": "src",
     "moduleResolution": "bundler",
     "module": "esnext",
     "target": "es2022",

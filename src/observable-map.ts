@@ -6,7 +6,7 @@ const unwrap = <T>(val: Invocable<T>): T => (typeof val === 'function' ? (val as
 
 export const createObservableMap = <T extends { [key: string]: any }>(
   defaultState?: Invocable<T>,
-  shouldUpdate: (newV: any, oldValue, prop: keyof T) => boolean = (a, b) => a !== b,
+  shouldUpdate: (newV: any, oldValue: any, prop: keyof T) => boolean = (a, b) => a !== b,
 ): ObservableMap<T> => {
   const resolveDefaultState = (): T => (unwrap(defaultState) ?? {}) as T;
   const initialState = resolveDefaultState();
@@ -88,14 +88,14 @@ export const createObservableMap = <T extends { [key: string]: any }>(
   ) as T;
 
   const on: OnHandler<T> = (eventName, callback) => {
-    handlers[eventName].push(callback);
+    (handlers[eventName] as Array<typeof callback>).push(callback);
     return () => {
       removeFromArray(handlers[eventName], callback);
     };
   };
 
   const onChange: OnChangeHandler<T> = (propName, cb) => {
-    const setHandler = (key, newValue) => {
+    const setHandler = (key: keyof T, newValue: any) => {
       if (key === propName) {
         cb(newValue);
       }
@@ -121,7 +121,7 @@ export const createObservableMap = <T extends { [key: string]: any }>(
   };
 
   const use = (...subscriptions: Subscription<T>[]): (() => void) => {
-    const unsubs = subscriptions.reduce((unsubs, subscription) => {
+    const unsubs = subscriptions.reduce<(() => void)[]>((unsubs, subscription) => {
       if (subscription.set) {
         unsubs.push(on('set', subscription.set));
       }
