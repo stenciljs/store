@@ -56,14 +56,14 @@
     "@rollup/plugin-typescript": "^12.3.0",
     "@stencil/core": "^4.38.2",
     "@types/node": "^26.0.0",
-    "@vitest/coverage-v8": "^4.0.5",
-    "np": "^11.0.1",
+    "@vitest/coverage-v8": "^5.0.5",
+    "np": "^12.1.1",
     "npm-run-all2": "^9.0.1",
     "prettier": "^3.6.2",
     "rimraf": "^6.0.1",
     "rollup": "^4.52.5",
-    "typescript": "~6.0.2",
-    "vitest": "^4.0.5"
+    "typescript": "~7.0.2",
+    "vitest": "^5.0.5"
   },
   "prettier": "@ionic/prettier-config"
 }
