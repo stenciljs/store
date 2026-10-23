@@ -24,13 +24,16 @@ const cleanupElements = debounce((map: Map<string, Set<WeakRef<any>>>) => {
   });
 }, 2_000);
 
-const core = StencilCore as unknown as {
+type StencilInternals = {
   forceUpdate?: (elm: any) => boolean;
   getRenderingRef?: () => any;
 };
 
-const forceUpdate = core.forceUpdate;
-const getRenderingRef = core.getRenderingRef;
+// Read each export straight off the namespace. Copying the namespace into a variable makes
+// bundlers keep the whole @stencil/core module object, which stops them removing
+// `if (Build.isBrowser)` branches from hydrate builds.
+const forceUpdate = (StencilCore as unknown as StencilInternals).forceUpdate;
+const getRenderingRef = (StencilCore as unknown as StencilInternals).getRenderingRef;
 
 export const stencilSubscription = <T>(): Subscription<T> => {
   if (typeof getRenderingRef !== 'function' || typeof forceUpdate !== 'function') {
