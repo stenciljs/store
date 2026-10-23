@@ -27,3 +27,7 @@ Thumbs.db
 UserInterfaceState.xcuserstate
 .env
 coverage
+
+# hydrate build test fixture output
+test/hydrate-app/hydrate/
+test/hydrate-app/src/components.d.ts
